@@ -16,19 +16,22 @@ window.addEventListener('load', () => {
 	const CELL_SIZE = 10
 	const DEFAULT_DIRECTION = 'R'
 	const DEFAULT_LENGTH = 5
-	const FOOD_COUNT = 1
-	const WALL_COUNT = 10
+	const WANTED_FPS = 30
+	const WANTED_INTERVAL = 1000 / WANTED_FPS
+	const FOOD_COUNT = 5
+	const WALL_COUNT = 0
 	const KEY_LEFT = 37
 	const KEY_UP = 38
 	const KEY_RIGHT = 39
 	const KEY_DOWN = 40
 
 	let foodCells = []
-	let wallCells = []
 	let score = 0
 	let snakeCells = []
 	let snakeDirection = DEFAULT_DIRECTION
-	
+	let wallCells = []
+	let timeThen = 0
+
 	// --------------------------------------------------------------
 
 	const init = () => {
@@ -36,9 +39,14 @@ window.addEventListener('load', () => {
 		resetParty()
 	}
 
-	const loop = () => {
-		update()
-		paint()
+	const loop = timeNow => {
+		const delta = timeNow - timeThen
+		if (delta > WANTED_INTERVAL) {
+			timeThen = timeNow - (delta % WANTED_INTERVAL)
+			update()
+			paint()
+		}
+		window.requestAnimationFrame(loop)
 	}
 
 	const isDefined = (cellArray, x, y) =>
@@ -67,7 +75,7 @@ window.addEventListener('load', () => {
 		snakeDirection = DEFAULT_DIRECTION 
 		const y = 0
 		for (let x = 0; x < DEFAULT_LENGTH; ++x)
-			snakeCells.unshift({x, y})
+			snakeCells.unshift({ x, y })
 	}
 	
 	const createWall= () => {
@@ -189,7 +197,7 @@ window.addEventListener('load', () => {
 
 	window.addEventListener('resize', init)
 	init()
-	setInterval(loop, 60)
+	window.requestAnimationFrame(loop)
 })
 </script>
 </body>
