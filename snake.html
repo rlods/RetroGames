@@ -16,12 +16,15 @@ window.addEventListener('load', () => {
 	const CELL_SIZE = 10
 	const DEFAULT_DIRECTION = 'R'
 	const DEFAULT_LENGTH = 5
+	const FOOD_COUNT = 1
+	const WALL_COUNT = 10
 	const KEY_LEFT = 37
 	const KEY_UP = 38
 	const KEY_RIGHT = 39
 	const KEY_DOWN = 40
 
-	let foodCell = null
+	let foodCells = []
+	let wallCells = []
 	let score = 0
 	let snakeCells = []
 	let snakeDirection = DEFAULT_DIRECTION
@@ -38,6 +41,27 @@ window.addEventListener('load', () => {
 		paint()
 	}
 
+	const isDefined = (cellArray, x, y) =>
+		cellArray.findIndex(cell => cell.x === x && cell.y === y) >= 0
+
+	const isFree = (x, y) =>
+		!isDefined(foodCells, x, y) && !isDefined(snakeCells, x, y) && !isDefined(wallCells, x, y)
+
+	const randomCell = () => {
+		while (true) {
+			const x = Math.round(Math.random() * (canvas.width - CELL_SIZE) / CELL_SIZE)
+			const y = Math.round(Math.random() * (canvas.height - CELL_SIZE) / CELL_SIZE)
+			if (isFree(x, y))
+				return { x, y }
+		}
+	}
+
+	const createFood = () => {
+		foodCells = []
+		for (let x = 0; x < FOOD_COUNT; ++x)
+			foodCells.push(randomCell())
+	}
+
 	const createSnake = () => {
 		snakeCells = []
 		snakeDirection = DEFAULT_DIRECTION 
@@ -46,16 +70,18 @@ window.addEventListener('load', () => {
 			snakeCells.unshift({x, y})
 	}
 	
-	const createFood = () =>
-		foodCell = {
-			x: Math.round(Math.random() * (canvas.width - CELL_SIZE) / CELL_SIZE), 
-			y: Math.round(Math.random() * (canvas.height - CELL_SIZE) / CELL_SIZE)
-		}
-	
+	const createWall= () => {
+		wallCells = []
+		for (let x = 0; x < WALL_COUNT; ++x)
+			wallCells.push(randomCell())
+	}
+
 	const resetParty = () => {
 		score = 0
+		// Order is important so that Food and Wall are not created above Snake
 		createSnake()
 		createFood()
+		createWall()
 	}
 
 	const resetSize = () => {
@@ -75,26 +101,37 @@ window.addEventListener('load', () => {
 		case 'U': y--; break;
 		}
 		
-		if (detectCollision(x, y)) {
+		if (collide(x, y)) {
 			resetParty()
 			return
 		}
 		
-		if (detectLunch(x, y)) {
-			score++
-			createFood()
-		}
-		else {
+		if (!eat(x, y))
 			snakeCells.pop()
-		}
+
 		snakeCells.unshift({ x, y })
 	}
 
-	const detectCollision = (x, y) =>
-		x < 0 || x > canvas.width / CELL_SIZE || y < 0 || y > canvas.height / CELL_SIZE || snakeCells.findIndex(cell => cell.x === x && cell.y === y) >= 0
+	const collide = (x, y) =>
+		x < 0 || x > canvas.width / CELL_SIZE
+		||
+		y < 0 || y > canvas.height / CELL_SIZE
+		||
+		isDefined(wallCells, x, y)
+		||
+		isDefined(snakeCells, x, y)
 
-	const detectLunch = (x, y) =>
-		x === foodCell.x && y === foodCell.y
+	const eat = (x, y) => {
+		const index = foodCells.findIndex(cell => cell.x === x && cell.y === y)
+		if (index >= 0) {
+			foodCells.splice(index, 1)
+			score++
+			if (foodCells.length == 0)
+				createFood()
+			return true
+		}
+		return false
+	}
 
 	// --------------------------------------------------------------
 
@@ -102,6 +139,7 @@ window.addEventListener('load', () => {
 		paintBackground()
 		paintSnake()
 		paintFood()
+		paintWall()
 		paintScore()
 	}
 	
@@ -116,7 +154,7 @@ window.addEventListener('load', () => {
 	}
 
 	const paintFood = () =>
-		paintCell(foodCell, 'red')
+		foodCells.forEach(cell => paintCell(cell, 'red'))
 
 	const paintScore = () => {
 		ctx.fillStyle = 'black'
@@ -124,7 +162,10 @@ window.addEventListener('load', () => {
 	}
 
 	const paintSnake = () =>
-		snakeCells.forEach(snakeCell => paintCell(snakeCell, 'blue'))	
+		snakeCells.forEach(cell => paintCell(cell, 'blue'))
+
+	const paintWall = () =>
+		wallCells.forEach(cell => paintCell(cell, 'black'))
 
 	// --------------------------------------------------------------
 	
