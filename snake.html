@@ -13,24 +13,30 @@ window.addEventListener('load', () => {
 	const canvas = document.getElementById('canvas')
 	const ctx = canvas.getContext('2d')
 
-	const CELL_SIZE = 10
-	const DEFAULT_DIRECTION = 'R'
-	const DEFAULT_LENGTH = 5
-	const WANTED_FPS = 30
-	const WANTED_INTERVAL = 1000 / WANTED_FPS
-	const FOOD_COUNT = 5
-	const WALL_COUNT = 0
+	// --------------------------------------------------------------
+
+	const CELL_SIZE = 50
 	const KEY_LEFT = 37
 	const KEY_UP = 38
 	const KEY_RIGHT = 39
 	const KEY_DOWN = 40
+	const WANTED_FPS = 10
+	const WANTED_INTERVAL = 1000 / WANTED_FPS
+	let gridWidth = 0
+	let gridHeight = 0
+	let timeThen = 0
 
+	// --------------------------------------------------------------
+
+	const DEFAULT_DIRECTION = 'R'
+	const DEFAULT_LENGTH = 5
+	const FOOD_COUNT = 1
+	const WALL_COUNT = 0
 	let foodCells = []
 	let score = 0
 	let snakeCells = []
 	let snakeDirection = DEFAULT_DIRECTION
 	let wallCells = []
-	let timeThen = 0
 
 	// --------------------------------------------------------------
 
@@ -49,6 +55,15 @@ window.addEventListener('load', () => {
 		window.requestAnimationFrame(loop)
 	}
 
+	const resetSize = () => {
+		canvas.width = window.innerWidth
+		canvas.height = window.innerHeight
+		gridWidth = Math.round(canvas.width / CELL_SIZE)
+		gridHeight = Math.round(canvas.height / CELL_SIZE)
+	}
+
+	// --------------------------------------------------------------
+
 	const isDefined = (cellArray, x, y) =>
 		cellArray.findIndex(cell => cell.x === x && cell.y === y) >= 0
 
@@ -57,8 +72,8 @@ window.addEventListener('load', () => {
 
 	const randomCell = () => {
 		while (true) {
-			const x = Math.round(Math.random() * (canvas.width - CELL_SIZE) / CELL_SIZE)
-			const y = Math.round(Math.random() * (canvas.height - CELL_SIZE) / CELL_SIZE)
+			const x = Math.round(Math.random() * (gridWidth - 1))
+			const y = Math.round(Math.random() * (gridHeight - 1))
 			if (isFree(x, y))
 				return { x, y }
 		}
@@ -92,11 +107,6 @@ window.addEventListener('load', () => {
 		createWall()
 	}
 
-	const resetSize = () => {
-		canvas.width = window.innerWidth
-		canvas.height = window.innerHeight		
-	}
-
 	// --------------------------------------------------------------
 
 	const update = () => {
@@ -121,9 +131,9 @@ window.addEventListener('load', () => {
 	}
 
 	const collide = (x, y) =>
-		x < 0 || x > canvas.width / CELL_SIZE
+		x < 0 || x >= gridWidth
 		||
-		y < 0 || y > canvas.height / CELL_SIZE
+		y < 0 || y >= gridHeight
 		||
 		isDefined(wallCells, x, y)
 		||
