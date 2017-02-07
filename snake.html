@@ -1,0 +1,155 @@
+<!DOCTYPE>
+<html>
+<head>
+<title>Snake</title>
+<style>
+* { border:0;margin:0;padding:0; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+window.addEventListener('load', () => {
+	const canvas = document.getElementById('canvas')
+	const ctx = canvas.getContext('2d')
+
+	const CELL_SIZE = 10
+	const DEFAULT_DIRECTION = 'R'
+	const DEFAULT_LENGTH = 5
+	const KEY_LEFT = 37
+	const KEY_UP = 38
+	const KEY_RIGHT = 39
+	const KEY_DOWN = 40
+
+	let foodCell = null
+	let score = 0
+	let snakeCells = []
+	let snakeDirection = DEFAULT_DIRECTION
+	
+	// --------------------------------------------------------------
+
+	const init = () => {
+		resetSize()
+		resetParty()
+	}
+
+	const loop = () => {
+		update()
+		paint()
+	}
+
+	const createSnake = () => {
+		snakeCells = []
+		snakeDirection = DEFAULT_DIRECTION 
+		const y = 0
+		for (let x = 0; x < DEFAULT_LENGTH; ++x)
+			snakeCells.unshift({x, y})
+	}
+	
+	const createFood = () =>
+		foodCell = {
+			x: Math.round(Math.random() * (canvas.width - CELL_SIZE) / CELL_SIZE), 
+			y: Math.round(Math.random() * (canvas.height - CELL_SIZE) / CELL_SIZE)
+		}
+	
+	const resetParty = () => {
+		score = 0
+		createSnake()
+		createFood()
+	}
+
+	const resetSize = () => {
+		canvas.width = window.innerWidth
+		canvas.height = window.innerHeight		
+	}
+
+	// --------------------------------------------------------------
+
+	const update = () => {
+		let { x, y } = snakeCells[0]
+		switch (snakeDirection)
+		{
+		case 'R': x++; break;
+		case 'L': x--; break;
+		case 'D': y++; break;
+		case 'U': y--; break;
+		}
+		
+		if (detectCollision(x, y)) {
+			resetParty()
+			return
+		}
+		
+		if (detectLunch(x, y)) {
+			score++
+			createFood()
+		}
+		else {
+			snakeCells.pop()
+		}
+		snakeCells.unshift({ x, y })
+	}
+
+	const detectCollision = (x, y) =>
+		x < 0 || x > canvas.width / CELL_SIZE || y < 0 || y > canvas.height / CELL_SIZE || snakeCells.findIndex(cell => cell.x === x && cell.y === y) >= 0
+
+	const detectLunch = (x, y) =>
+		x === foodCell.x && y === foodCell.y
+
+	// --------------------------------------------------------------
+
+	const paint = () => {
+		paintBackground()
+		paintSnake()
+		paintFood()
+		paintScore()
+	}
+	
+	const paintBackground = () => {
+		ctx.fillStyle = 'white'
+		ctx.fillRect(0, 0, canvas.width, canvas.height)
+	}
+
+	const paintCell = ({ x, y }, color) => {
+		ctx.fillStyle = color
+		ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+	}
+
+	const paintFood = () =>
+		paintCell(foodCell, 'red')
+
+	const paintScore = () => {
+		ctx.fillStyle = 'black'
+		ctx.fillText('Score: ' + score, 10, canvas.height - 10)
+	}
+
+	const paintSnake = () =>
+		snakeCells.forEach(snakeCell => paintCell(snakeCell, 'blue'))	
+
+	// --------------------------------------------------------------
+	
+	window.addEventListener('keydown', ({ which }) => {
+		switch (which)
+		{
+		case KEY_LEFT:
+			if (snakeDirection !== 'R') snakeDirection = 'L'
+			break
+		case KEY_UP:
+			if (snakeDirection !== 'D') snakeDirection = 'U'
+			break
+		case KEY_RIGHT:
+			if (snakeDirection !== 'L') snakeDirection = 'R'
+			break
+		case KEY_DOWN:
+			if (snakeDirection !== 'U') snakeDirection = 'D'
+			break
+		}
+	})
+
+	window.addEventListener('resize', init)
+	init()
+	setInterval(loop, 60)
+})
+</script>
+</body>
+</html>
