@@ -179,8 +179,30 @@ window.addEventListener('load', () => {
 		ctx.fillText('Score: ' + score, 10, canvas.height - 10)
 	}
 
+	/*
+	const SNAKE_COLORS = [
+		'rgba(0, 0, 255, 1.0)',
+		'rgba(0, 0, 255, 0.9)',
+		'rgba(0, 0, 255, 0.8)',
+		'rgba(0, 0, 255, 0.7)',
+		'rgba(0, 0, 255, 0.6)',
+		'rgba(0, 0, 255, 0.5)',
+		'rgba(0, 0, 255, 0.4)'
+	]
+	*/
+
+	const SNAKE_COLORS = [
+		'#9400D3',
+		'#4B0082',
+		'#0000FF',
+		'#00FF00',
+		'#FFFF00',
+		'#FF7F00',
+		'#FF0000'
+	]
+	
 	const paintSnake = () =>
-		snakeCells.forEach(cell => paintCell(cell, 'blue'))
+		snakeCells.forEach((cell, index) => paintCell(cell, SNAKE_COLORS[index % SNAKE_COLORS.length]))
 
 	const paintWall = () =>
 		wallCells.forEach(cell => paintCell(cell, 'black'))
